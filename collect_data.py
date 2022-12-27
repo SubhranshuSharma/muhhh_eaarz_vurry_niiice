@@ -74,7 +74,7 @@ np.save('data/times.npy',times)
 with open("key_log.txt", "r") as f:
     text = f.read()
     text,_ =text.split("Key.ctrl",1)
-    text = text.replace("Key.space", "<>")
+    text = text.replace("Key.space", "_")
     char_list = list(text)
     np.save("data/labels.npy", char_list)
     os.system('rm key_log.txt')

@@ -14,10 +14,11 @@ data_queue = multiprocessing.Queue()
 # Create a function to run predictions on the data chunks in the queue
 def predict(data_queue,mic_process):
     me_too_poor=False
+    number_of_noise_reduction_loops=3
     was_noise_reduction_on=True
     sr=44100
     keystroke_duration_milliseconds=50
-    cosine_similarity_width=5
+    cosine_similarity_width=[5,7,10]
     # Load the trained classifier
     clf = joblib.load('model/model.pkl')
     recorded_data = collections.deque(maxlen=14 * 44100)
@@ -35,28 +36,37 @@ def predict(data_queue,mic_process):
                     y = np.array(recorded_data).astype(float)
                     y=y.reshape(-1,1)
                     # elapsed_time=0
-                    soundfile.write('out.wav', y, samplerate=44100, subtype='PCM_16')
+                    # soundfile.write('out.wav', y, samplerate=44100, subtype='PCM_16')
+                    y_inv_b=y
                     if was_noise_reduction_on:
-                        S_full, phase = librosa.magphase(librosa.stft(y))
-                        S_filter = librosa.decompose.nn_filter(S_full,
-                                                                aggregate=np.median,
-                                                                metric='cosine',
-                                                                width=int(librosa.time_to_frames(cosine_similarity_width, sr=sr)))
-                        S_filter = np.minimum(S_full, S_filter)
-                        margin_i, margin_v = 2, 10
-                        power = 2
-                        mask_i = librosa.util.softmask(S_filter,
-                                                        margin_i * (S_full - S_filter),
-                                                        power=power)
-                        mask_v = librosa.util.softmask(S_full - S_filter,
-                                                        margin_v * S_filter,
-                                                        power=power)
-                        S_foreground = mask_v * S_full
-                        y = librosa.griffinlim(S_foreground)
+                        for i in range(number_of_noise_reduction_loops):
+                            S_full, phase = librosa.magphase(librosa.stft(y_inv_b))
+
+                            S_filter = librosa.decompose.nn_filter(S_full,
+                                                                    aggregate=np.median,
+                                                                    metric='cosine',
+                                                                    width=int(librosa.time_to_frames(cosine_similarity_width[i], sr=sr)))
+
+                            S_filter = np.minimum(S_full, S_filter)
+
+                            margin_i, margin_v = 2, 10
+                            power = 2
+
+                            mask_i = librosa.util.softmask(S_filter,
+                                                            margin_i * (S_full - S_filter),
+                                                            power=power)
+
+                            mask_v = librosa.util.softmask(S_full - S_filter,
+                                                            margin_v * S_filter,
+                                                            power=power)
+
+                            S_foreground = mask_v * S_full
+                            if i==0:y=librosa.griffinlim(S_foreground)
+                            else:y+=librosa.griffinlim(S_foreground)
                     if 14<=elapsed_time<14.1 or 0<=((elapsed_time-14)%2)<0.1:
                         if 14<=elapsed_time<14.1:elapsed_time=14.1
                         elif 0<=((elapsed_time-14)%2)<0.1:elapsed_time=int(elapsed_time)+0.1
-                        y=y[int(int(len(y)/44100)-2*44100):]
+                        y=y[int(len(y)-2*44100):]
                         # Detect onsets in the data and crop it to 50 milliseconds
                         onset_indices = librosa.onset.onset_detect(y=y, sr=sr, units='samples')
                         num_samples_to_crop = librosa.time_to_samples(keystroke_duration_milliseconds / 1000, sr=sr)

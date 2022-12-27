@@ -9,7 +9,6 @@ try:
     print('start typing!, press ctrl-c when done')
     while True:
         data=stream.read(1024)
-        print(type(data))
         fr.append(data)
 except KeyboardInterrupt:
     pass

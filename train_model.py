@@ -18,7 +18,7 @@ Options are:
 svm.SVC(), GradientBoostingClassifier(), 
 RandomForestClassifier(), KNeighborsClassifier(), 
 LogisticRegression()'''
-clf = KNeighborsClassifier()
+clf = RandomForestClassifier()
 
 # Train the classifier on the training data
 clf.fit(X_train, y_train)

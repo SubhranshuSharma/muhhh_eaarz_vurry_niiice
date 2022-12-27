@@ -5,14 +5,16 @@ listen to foreground and background an data folder(present if noise reduction on
 the background shound not have keystroke sounds in it
 '''
 noise_reduction=True
+number_of_noise_reduction_loops=3
 
 '''
 cosine_similarity_width:
 its the width(in seconds) for which median is calculated
-in noise reduction (look at line 17-20 in clean labeled data)
+in noise reduction (look at line 20-23 in clean_data.py)
 basically increasing it might decrease background noise(and also foreground of overdone) 
+its each element represent the width used in each loop
 '''
-cosine_similarity_width=5
+cosine_similarity_width=[5,7,10]
 
 plot_spectrogram=False
 
@@ -20,9 +22,12 @@ keystroke_duration_milliseconds = 50
 
 '''
 if thinking of appending already present data change these names
-to d1.npy and l1.npy and the old data will not we overwritten
+to data*.npy and labels*.npy (in regex so for example data1.py,labels1.py) and the old data will not we overwritten
 then collect and append the data using append_data.npy script
 '''
 name_of_data_file='data.npy'
 name_of_labels_file='labels.npy'
 
+
+
+if len(cosine_similarity_width)!=number_of_noise_reduction_loops:cosine_similarity_width=[5 for _ in range(number_of_noise_reduction_loops)]
