@@ -25,8 +25,6 @@ clf.fit(X_train, y_train)
 
 # save the model
 joblib.dump(clf, 'model/model.pkl') 
-joblib.dump(clf, 'predict/model.pkl') 
-
 
 # Use the trained classifier to make predictions on the test data
 y_pred = clf.predict(X_test)

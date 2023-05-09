@@ -13,6 +13,11 @@ label_filenames = glob.glob('labels*.npy')
 data_filenames.pop(data_filenames.index('data.npy'))
 label_filenames.pop(label_filenames.index('labels.npy'))
 
+# Sort the data filenames based on the numeric part
+data_filenames = sorted(data_filenames, key=lambda x: int(x[4:-4]))
+label_filenames = sorted(label_filenames, key=lambda x: int(x[6:-4]))
+
+
 # Iterate through the data and label files, and concatenate the data onto the main arrays
 for data_filename, label_filename in zip(data_filenames, label_filenames):
     data1 = np.load(data_filename)

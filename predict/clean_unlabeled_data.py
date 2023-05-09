@@ -72,4 +72,5 @@ for onset_index in onset_indices:
     end_index = onset_index + num_samples_to_crop
     if len(y)>end_index:
         cropped_audio.append(y[start_index:end_index])
+sf.write('clean_unlabeled.wav',y,samplerate=sr,subtype='PCM_24')
 np.save("unlabeled_data.npy",cropped_audio)

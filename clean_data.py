@@ -16,7 +16,6 @@ os.system('rm data/background.wav data/foreground.wav')
 if noise_reduction==True:
     for i in range(number_of_noise_reduction_loops):
         S_full, phase = librosa.magphase(librosa.stft(y_inv_b))
-
         S_filter = librosa.decompose.nn_filter(S_full,
                                                 aggregate=np.median,
                                                 metric='cosine',

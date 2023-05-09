@@ -1,7 +1,6 @@
 import pyaudio
 import wave
 import numpy as np
-import joblib
 import multiprocessing
 import time,librosa
 import collections
@@ -14,13 +13,19 @@ data_queue = multiprocessing.Queue()
 # Create a function to run predictions on the data chunks in the queue
 def predict(data_queue,mic_process):
     me_too_poor=False
+    use_tf_model=True
     number_of_noise_reduction_loops=3
     was_noise_reduction_on=True
     sr=44100
     keystroke_duration_milliseconds=50
     cosine_similarity_width=[5,7,10]
     # Load the trained classifier
-    clf = joblib.load('model/model.pkl')
+    if use_tf_model==True:
+        import tensorflow as tf
+        clf = tf.keras.models.load_model ('model/model.h5')
+    else:
+        import joblib
+        clf = joblib.load('model/model.pkl')
     recorded_data = collections.deque(maxlen=14 * 44100)
     elapsed_time = 0
     print('\npredictor ready')
@@ -78,6 +83,7 @@ def predict(data_queue,mic_process):
                                 cropped_audio.append(y[start_index:end_index])
                         if len(cropped_audio==0):print('no keystrokes detected')
                         for data_chunk in cropped_audio:
+                            if use_tf_model==True:data_chunk = librosa.feature.melspectrogram(y=data_chunk, sr=44100, n_fft=2048, hop_length=512, n_mels=128)
                             pred = clf.predict(data_chunk)
                             print('pred:', pred)
             else:
@@ -107,3 +113,6 @@ mic_process = multiprocessing.Process(target=mic, args=(data_queue,))
 prediction_process = multiprocessing.Process(target=predict, args=(data_queue,mic_process))
 mic_process.start()
 prediction_process.start()
+
+
+
